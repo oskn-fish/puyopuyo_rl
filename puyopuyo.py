@@ -17,8 +17,12 @@ class Puyo(pygame.sprite.Sprite):
     def __init__(self, color: str) -> None:
         super().__init__()
         self.image = pygame.image.load(Puyo.to_img[color])
-        self.rect = self.image.get_rect()
-        self.rect.center = (DISPLAY_SIZE[0]/2, DISPLAY_SIZE[1]/2)
+        self.rect = self.image.get_rect(center = (DISPLAY_SIZE[0]//2, self.image.get_height()//2))
+    
+    def fall(self):
+        if self.rect.bottom < DISPLAY.get_height():
+            self.rect.move_ip(0, 5)
+        # pass
         
     def draw(self, surface: pygame.Surface) -> None:
         # pygame.Surface.blit(drawing_surface, destination_surface)
@@ -26,11 +30,8 @@ class Puyo(pygame.sprite.Sprite):
         
 
 def main():
-    
-    CLOCK.tick(60)
     puyo = Puyo("red")
     
-    # DISPLAYSURF = pygame.display.set_mode(DISPLAY_SIZE)
     
     while True:
         # catch events
@@ -39,11 +40,15 @@ def main():
                 # Simply using sys.exit() can cause your IDE to hang due to a common bug. 
                 pygame.quit()
                 sys.exit()
-        # render 
+                
+        # update display
+        DISPLAY.fill("white")
+        puyo.fall()
         puyo.draw(DISPLAY)
         
-        
+        # render
         pygame.display.update()
+        CLOCK.tick(60)
     
 
 if __name__ == "__main__":
