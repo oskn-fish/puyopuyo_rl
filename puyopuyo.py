@@ -50,27 +50,70 @@ class FallingPuyos(pygame.sprite.Sprite):
     def fall(self):
         for puyo in self.puyos:
             puyo.fall()
+            
+    def x_movable(self, dx):
+        candidates = [self.puyos[i].rect.move(dx, 0) for i in range(2)]
+        for candidate in candidates:
+            if candidate.left<0 or candidate.right>self.display.get_width():
+                return False
+            for puyo in landed_sprites:
+                if pygame.Rect.colliderect(puyo.rect, candidate):
+                    return False
+        return True
+    
+    def y_movable(self, dy):
+        candidates = [self.puyos[i].rect.move(0, dy) for i in range(2)]
+        for candidate in candidates:
+            if candidate.bottom>self.display.get_height():
+                return False
+            for puyo in landed_sprites:
+                if pygame.Rect.colliderect(puyo.rect, candidate):
+                    return False
+        return True
+    
+    def adjust_move(self, dx, dy) -> tuple:
+        adjusted_dx, adjusted_dy = dx, dy
+        if not self.x_movable(dx):
+            adjusted_dx = 0
+        if not self.y_movable(dy):
+            for i in range(FALL_SPEED):
+                if self.y_movable(i):
+                    adjusted_dy = i
+            # adjusted_dy = 0
+        return adjusted_dx, adjusted_dy
     
     def update(self):
         # movable 判定は個別puyoでなく，puyosで共有しないといけないので，ここで実装．
         # ついでに，landedもrefactoringしたい．
         
-        # if keep_update:
+        dx = 0
+        dy = FALL_SPEED
+        pressed_keys = pygame.key.get_pressed()
+        
+        if pressed_keys[K_LEFT]:
+            dx = -IMG_WIDTH
+        if pressed_keys[K_RIGHT]:
+            dx = IMG_WIDTH
             
+        dx, dy = self.adjust_move(dx, dy)
+        
+        if (dx, dy) == (0, 0):
+            landed_sprites.add(self.puyos[0], self.puyos[1])
+            pygame.event.post(pygame.event.Event(puyo_landed))
         
         for puyo in self.puyos:
-            puyo.update()
-        #   0: sita 1:ue
-        if landed_sprites.has(self.puyos[0]): # 1 -> shitamushi 0 -> ue kieru
-            landed_sprites.add(self.puyos[1])
-            pygame.event.post(pygame.event.Event(puyo_landed))
-            # self.reset_puyos()
-        elif landed_sprites.has(self.puyos[1]):
-            landed_sprites.add(self.puyos[0])
-            pygame.event.post(pygame.event.Event(puyo_landed))
-            # self.reset_puyos()
-        # else:
-        #     self.reset_puyos()
+            puyo.move(dx, dy)
+
+        # for puyo in self.puyos:
+        #     puyo.update()
+        
+        # if landed_sprites.has(self.puyos[0]):
+        #     landed_sprites.add(self.puyos[1])
+        #     pygame.event.post(pygame.event.Event(puyo_landed))
+            
+        # elif landed_sprites.has(self.puyos[1]):
+        #     landed_sprites.add(self.puyos[0])
+        #     pygame.event.post(pygame.event.Event(puyo_landed))
     
     def draw(self):
         for puyo in self.puyos:
@@ -104,27 +147,31 @@ class Puyo(pygame.sprite.Sprite):
         # if not self.landed:
         self.fall()
         
-        pressed_keys = pygame.key.get_pressed()
-        if pressed_keys[K_LEFT] and self.rect.left>IMG_WIDTH//2:
-            movable = True
-            candidate = self.rect.move(-32, 0)
-            for puyo in landed_sprites:
-                if pygame.Rect.colliderect(puyo.rect, candidate):
-                    movable = False
-            if movable:
-                self.rect.move_ip(-32, 0)
-        if pressed_keys[K_RIGHT] and self.rect.right<self.display.get_width()-IMG_WIDTH//2:
-            movable = True
-            candidate = self.rect.move(32, 0)
-            for puyo in landed_sprites:
-                if pygame.Rect.colliderect(puyo.rect, candidate):
-                    movable = False
-            if movable:
-                self.rect.move_ip(32, 0)
+        # pressed_keys = pygame.key.get_pressed()
+        # if pressed_keys[K_LEFT] and self.rect.left>IMG_WIDTH//2:
+        #     movable = True
+        #     candidate = self.rect.move(-32, 0)
+        #     for puyo in landed_sprites:
+        #         if pygame.Rect.colliderect(puyo.rect, candidate):
+        #             movable = False
+        #     if movable:
+        #         self.rect.move_ip(-32, 0)
+        # if pressed_keys[K_RIGHT] and self.rect.right<self.display.get_width()-IMG_WIDTH//2:
+        #     movable = True
+        #     candidate = self.rect.move(32, 0)
+        #     for puyo in landed_sprites:
+        #         if pygame.Rect.colliderect(puyo.rect, candidate):
+        #             movable = False
+        #     if movable:
+        #         self.rect.move_ip(32, 0)
+        
 
-        if pygame.sprite.spritecollideany(self, landed_sprites):
+        # if pygame.sprite.spritecollideany(self, landed_sprites):
             # self.landed = True
-            landed_sprites.add(self)
+            # landed_sprites.add(self)
+            
+    def move(self, dx, dy):
+        self.rect.move_ip(dx, dy)
         
     def draw(self) -> None:
         # pygame.Surface.blit(drawing_surface, destination_surface)
