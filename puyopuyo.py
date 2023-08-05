@@ -1,18 +1,25 @@
 import pygame
 import sys
 from pygame.locals import *
+import random
 
 pygame.init()
 
 IMG_WIDTH = IMG_HEIGHT = 32
 BLACK = pygame.Color((0, 0, 0))
 FALL_SPEED = 3
+COLORS = ["red", "green", "blue", "purple", "yellow"]
+
 display_size = (IMG_WIDTH*6, IMG_HEIGHT*(12+1+3))
 display = pygame.display.set_mode(display_size)
 clock = pygame.time.Clock()
+
 outlet_position = (2*IMG_WIDTH+IMG_WIDTH//2, display.get_height()-11*IMG_HEIGHT-IMG_HEIGHT//2)
 above_outlet = (2*IMG_WIDTH+IMG_WIDTH//2, display.get_height()-12*IMG_HEIGHT-IMG_HEIGHT//2)
+
 landed_sprites = pygame.sprite.Group()
+
+game_ended = pygame.event.custom_type()
 
 
 pygame.key.set_repeat(100000,1000)
@@ -28,9 +35,14 @@ pygame.display.set_caption("puyopuyo")
 # move sprites in the group
 
 class FallingPuyos(pygame.sprite.Sprite):
-    def __init__(self, display: pygame.surface, str_puyo1: str, str_puyo2: str):
+    def __init__(self, display: pygame.surface):
         self.display = display
-        self.puyos = [Puyo(self.display, outlet_position, str_puyo1), Puyo(self.display, above_outlet, str_puyo2)]
+        # self.puyos = [Puyo(self.display, outlet_position, random.choice(COLORS)), Puyo(self.display, above_outlet, random.choice(COLORS))]
+        self.reset_puyos()
+        
+    def reset_puyos(self):
+        self.puyos = [Puyo(self.display, outlet_position, random.choice(COLORS)), Puyo(self.display, above_outlet, random.choice(COLORS))]
+        # self.landed = False
     
     def fall(self):
         for puyo in self.puyos:
@@ -39,6 +51,14 @@ class FallingPuyos(pygame.sprite.Sprite):
     def update(self):
         for puyo in self.puyos:
             puyo.update()
+        #   0: sita 1:ue
+        if landed_sprites.has(self.puyos[0]): # 1 -> shitamushi 0 -> ue kieru
+            landed_sprites.add(self.puyos[1])
+            self.reset_puyos()
+        elif landed_sprites.has(self.puyos[1]):
+            landed_sprites.add(self.puyo[0])
+            # self.landed = True
+            self.reset_puyos()
     
     def draw(self):
         for puyo in self.puyos:
@@ -59,26 +79,27 @@ class Puyo(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center = center)
         self.landed = False
         
-    
     def fall(self) -> None:
+        # if not self.landed and self.rect.bottom < self.display.get_height():
         if self.rect.bottom < self.display.get_height():
             self.rect.move_ip(0, FALL_SPEED)
         else:
-            self.landed = True
+            # self.landed = True
             landed_sprites.add(self)
         
     def update(self) -> None:
-        if not self.landed:
-            self.fall()
-            
-            pressed_keys = pygame.key.get_pressed()
-            if pressed_keys[K_LEFT] and self.rect.left>IMG_WIDTH//2:
-                self.rect.move_ip(-32, 0)
-            if pressed_keys[K_RIGHT]and self.rect.right<self.display.get_width()-IMG_WIDTH//2:
-                self.rect.move_ip(32, 0)
+        # if not self.landed:
+        self.fall()
         
-            if pygame.sprite.spritecollideany(self, landed_sprites):
-                self.landed = True
+        pressed_keys = pygame.key.get_pressed()
+        if pressed_keys[K_LEFT] and self.rect.left>IMG_WIDTH//2:
+            self.rect.move_ip(-32, 0)
+        if pressed_keys[K_RIGHT]and self.rect.right<self.display.get_width()-IMG_WIDTH//2:
+            self.rect.move_ip(32, 0)
+
+        if pygame.sprite.spritecollideany(self, landed_sprites):
+            # self.landed = True
+            landed_sprites.add(self)
         
     def draw(self) -> None:
         # pygame.Surface.blit(drawing_surface, destination_surface)
@@ -113,22 +134,30 @@ class Frame():
     def draw(self) -> None:
         pygame.draw.rect(self.surface, BLACK, self.rect)
         
-class Batsu():
+class Batsu(pygame.sprite.Sprite):
     def __init__(self, surface: pygame.surface):
+        super().__init__()
         self.surface = surface
         self.image = pygame.image.load("./img/batsu_32.png")
         self.rect = self.image.get_rect(center=(2*IMG_WIDTH+IMG_WIDTH//2, self.surface.get_height()-11*IMG_HEIGHT-IMG_HEIGHT//2))
+        
+    def update(self):
+        if pygame.sprite.spritecollideany(self, landed_sprites):
+            end_event = pygame.event.Event(game_ended)
+            pygame.event.post(end_event)
         
     def draw(self):
         self.surface.blit(self.image, self.rect)
 
 def main():
-    falling_puyos = FallingPuyos(display, "red", "blue")
+    falling_puyos = FallingPuyos(display)
     # all_sprites.add(falling_puyos.puyos[0], falling_puyos.puyos[1])
     
     frame = Frame(display)
     batsu = Batsu(display)
     window = Window(display)
+    
+    keep_update = True
     
     while True:
         # catch events
@@ -137,18 +166,23 @@ def main():
                 # Simply using sys.exit() can cause your IDE to hang due to a common bug. 
                 pygame.quit()
                 sys.exit()
+            elif event.type == game_ended:
+                keep_update = False
                 
         # initiate canvas
         display.fill("white")
         
         # update display
-        falling_puyos.update()
+        batsu.update()
+        if keep_update:
+            falling_puyos.update()
         
         # draw
         batsu.draw()
         frame.draw()
         window.draw()
         falling_puyos.draw()
+        landed_sprites.draw(display)
         
         # render
         pygame.display.update()
