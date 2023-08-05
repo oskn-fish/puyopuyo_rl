@@ -7,6 +7,7 @@ pygame.init()
 
 IMG_WIDTH = IMG_HEIGHT = 32
 BLACK = pygame.Color((0, 0, 0))
+WHITE = pygame.Color((255, 255, 255))
 FALL_SPEED = 3
 COLORS = ["red", "green", "blue", "purple", "yellow"]
 
@@ -31,13 +32,24 @@ pygame.display.set_caption("puyopuyo")
 # sprite collision
 # move sprites in the group
 
+class Board():
+    def __init__(self):
+        self.list_board = [[" "]*6 for i in range(12)]
+        self.puyos_queue = [[random.choice(COLORS), random.choice(COLORS)] for i in range(2)]
+
+
 class FallingPuyos(pygame.sprite.Sprite):
-    def __init__(self, display: pygame.surface):
+    def __init__(self, display: pygame.surface, board: Board):
         self.display = display
+        self.board = board
         self.reset_puyos()
         
     def reset_puyos(self):
-        self.puyos = [Puyo(self.display, outlet_position, random.choice(COLORS)), Puyo(self.display, above_outlet, random.choice(COLORS))]
+        self.board.puyos_queue.append([random.choice(COLORS), random.choice(COLORS)])
+        new_puyo_colors = self.board.puyos_queue.pop(0)
+        self.puyos = [Puyo(self.display, outlet_position, new_puyo_colors[1]), Puyo(self.display, above_outlet, new_puyo_colors[0])]
+        # self.puyos = [Puyo(self.display, outlet_position, random.choice(COLORS)), Puyo(self.display, above_outlet, random.choice(COLORS))]
+        
         # self.landed = False
     
     def fall(self):
@@ -131,18 +143,33 @@ class Puyo(pygame.sprite.Sprite):
         
         
 class Window():
-    def __init__(self, display: pygame.surface):
+    def __init__(self, display: pygame.surface, board: Board):
         self.display = display
-        self.left_surface = pygame.Surface((IMG_WIDTH, 2*IMG_HEIGHT))
-        self.left_surface.fill((255, 255, 255))
-        self.left_rect = self.left_surface.get_rect(topright=(display.get_width()-3*IMG_WIDTH//2, 3*IMG_HEIGHT//2))
-        self.right_surface = pygame.Surface((IMG_WIDTH, 2*IMG_HEIGHT))
-        self.right_surface.fill((255, 255, 255))
-        self.right_rect = self.right_surface.get_rect(topright=(display.get_width()-IMG_WIDTH//2, IMG_HEIGHT//2))
+        self.board = board
+        
+        left_surface = pygame.Surface((IMG_WIDTH, 2*IMG_HEIGHT))
+        left_surface.fill(WHITE)
+        left_rect = left_surface.get_rect(topright=(self.display.get_width()-3*IMG_WIDTH//2, 3*IMG_HEIGHT//2))
+        
+        right_surface = pygame.Surface((IMG_WIDTH, 2*IMG_HEIGHT))
+        right_surface.fill(WHITE)
+        right_rect = right_surface.get_rect(topright=(self.display.get_width()-IMG_WIDTH//2, IMG_HEIGHT//2))
+        
+        self.surfaces = [right_surface, left_surface]
+        self.rects = [right_rect, left_rect]
+        
+        self.puyos = [[Puyo(self.surfaces[0], (IMG_WIDTH//2, IMG_HEIGHT//2), self.board.puyos_queue[0][0]), Puyo(self.surfaces[0], (IMG_WIDTH//2, 3*IMG_HEIGHT//2), self.board.puyos_queue[0][0])], [Puyo(self.surfaces[1], (IMG_WIDTH//2, IMG_HEIGHT//2), self.board.puyos_queue[1][0]), Puyo(self.surfaces[1], (IMG_WIDTH//2, 3*IMG_HEIGHT//2), self.board.puyos_queue[1][1])]]
+        
+    def update(self):
+        self.puyos = [[Puyo(self.surfaces[0], (IMG_WIDTH//2, IMG_HEIGHT//2), self.board.puyos_queue[0][0]), Puyo(self.surfaces[0], (IMG_WIDTH//2, 3*IMG_HEIGHT//2), self.board.puyos_queue[0][0])], [Puyo(self.surfaces[1], (IMG_WIDTH//2, IMG_HEIGHT//2), self.board.puyos_queue[1][0]), Puyo(self.surfaces[1], (IMG_WIDTH//2, 3*IMG_HEIGHT//2), self.board.puyos_queue[1][1])]]
 
     def draw(self):
-        self.display.blit(self.left_surface, self.left_rect)
-        self.display.blit(self.right_surface, self.right_rect)
+        for puyos, surface, rect in zip(self.puyos, self.surfaces, self.rects):
+            surface.fill(WHITE)
+            for puyo in puyos:
+                puyo.draw()
+            self.display.blit(surface, rect)
+        
 
 
 class Frame():
@@ -168,17 +195,16 @@ class Batsu(pygame.sprite.Sprite):
     def draw(self):
         self.surface.blit(self.image, self.rect)
         
-def board():
-    def __init__(self):
-        self.list_board = [[" "]*6 for i in range(12)]
+
 
 def main():
-    falling_puyos = FallingPuyos(display)
+    board = Board()
+    falling_puyos = FallingPuyos(display, board)
     # all_sprites.add(falling_puyos.puyos[0], falling_puyos.puyos[1])
     
     frame = Frame(display)
     batsu = Batsu(display)
-    window = Window(display)
+    window = Window(display, board)
     
     
     while True:
@@ -209,6 +235,7 @@ def main():
         if keep_update:
             falling_puyos.update()
         batsu.update()
+        window.update()
         # draw
         batsu.draw()
         frame.draw()
