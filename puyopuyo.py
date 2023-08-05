@@ -19,6 +19,7 @@ above_outlet = (2*IMG_WIDTH+IMG_WIDTH//2, display.get_height()-12*IMG_HEIGHT-IMG
 
 landed_sprites = pygame.sprite.Group()
 
+puyo_landed = pygame.event.custom_type()
 game_ended = pygame.event.custom_type()
 
 
@@ -26,6 +27,8 @@ pygame.key.set_repeat(100000,1000)
 
 
 pygame.display.set_caption("puyopuyo")
+
+# keep_update = True
 
 # multiple puyos
 
@@ -49,16 +52,25 @@ class FallingPuyos(pygame.sprite.Sprite):
             puyo.fall()
     
     def update(self):
+        # movable 判定は個別puyoでなく，puyosで共有しないといけないので，ここで実装．
+        # ついでに，landedもrefactoringしたい．
+        
+        # if keep_update:
+            
+        
         for puyo in self.puyos:
             puyo.update()
         #   0: sita 1:ue
         if landed_sprites.has(self.puyos[0]): # 1 -> shitamushi 0 -> ue kieru
             landed_sprites.add(self.puyos[1])
-            self.reset_puyos()
+            pygame.event.post(pygame.event.Event(puyo_landed))
+            # self.reset_puyos()
         elif landed_sprites.has(self.puyos[1]):
             landed_sprites.add(self.puyos[0])
-            # self.landed = True
-            self.reset_puyos()
+            pygame.event.post(pygame.event.Event(puyo_landed))
+            # self.reset_puyos()
+        # else:
+        #     self.reset_puyos()
     
     def draw(self):
         for puyo in self.puyos:
@@ -75,7 +87,8 @@ class Puyo(pygame.sprite.Sprite):
     def __init__(self, display: pygame.surface, center: tuple, color: str) -> None:
         super().__init__()
         self.display = display
-        self.image = pygame.image.load(Puyo.to_img[color])
+        self.color = color
+        self.image = pygame.image.load(Puyo.to_img[self.color])
         self.rect = self.image.get_rect(center = center)
         self.landed = False
         
@@ -100,7 +113,7 @@ class Puyo(pygame.sprite.Sprite):
                     movable = False
             if movable:
                 self.rect.move_ip(-32, 0)
-        if pressed_keys[K_RIGHT]and self.rect.right<self.display.get_width()-IMG_WIDTH//2:
+        if pressed_keys[K_RIGHT] and self.rect.right<self.display.get_width()-IMG_WIDTH//2:
             movable = True
             candidate = self.rect.move(32, 0)
             for puyo in landed_sprites:
@@ -169,10 +182,12 @@ def main():
     batsu = Batsu(display)
     window = Window(display)
     
-    keep_update = True
     
     while True:
         # catch events
+        keep_update = True
+        reset_puyo = False
+
         for event in pygame.event.get():
             if event.type == QUIT:
                 # Simply using sys.exit() can cause your IDE to hang due to a common bug. 
@@ -180,15 +195,20 @@ def main():
                 sys.exit()
             elif event.type == game_ended:
                 keep_update = False
+            elif event.type == puyo_landed:
+                reset_puyo = True
+                # falling_puyos.reset_puyos()
                 
         # initiate canvas
         display.fill("white")
-        
+        if keep_update and reset_puyo:
+            falling_puyos.reset_puyos()
+
         # update display
-        batsu.update()
+        
         if keep_update:
             falling_puyos.update()
-        
+        batsu.update()
         # draw
         batsu.draw()
         frame.draw()
