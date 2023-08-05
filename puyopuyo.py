@@ -12,6 +12,7 @@ display = pygame.display.set_mode(display_size)
 clock = pygame.time.Clock()
 outlet_position = (2*IMG_WIDTH+IMG_WIDTH//2, display.get_height()-11*IMG_HEIGHT-IMG_HEIGHT//2)
 above_outlet = (2*IMG_WIDTH+IMG_WIDTH//2, display.get_height()-12*IMG_HEIGHT-IMG_HEIGHT//2)
+landed_sprites = pygame.sprite.Group()
 
 
 pygame.key.set_repeat(100000,1000)
@@ -56,19 +57,28 @@ class Puyo(pygame.sprite.Sprite):
         self.display = display
         self.image = pygame.image.load(Puyo.to_img[color])
         self.rect = self.image.get_rect(center = center)
+        self.landed = False
         
     
     def fall(self) -> None:
         if self.rect.bottom < self.display.get_height():
             self.rect.move_ip(0, FALL_SPEED)
+        else:
+            self.landed = True
+            landed_sprites.add(self)
         
     def update(self) -> None:
-        self.fall()
-        pressed_keys = pygame.key.get_pressed()
-        if pressed_keys[K_LEFT] and self.rect.left>IMG_WIDTH//2:
-            self.rect.move_ip(-32, 0)
-        if pressed_keys[K_RIGHT]and self.rect.right<self.display.get_width()-IMG_WIDTH//2:
-            self.rect.move_ip(32, 0)
+        if not self.landed:
+            self.fall()
+            
+            pressed_keys = pygame.key.get_pressed()
+            if pressed_keys[K_LEFT] and self.rect.left>IMG_WIDTH//2:
+                self.rect.move_ip(-32, 0)
+            if pressed_keys[K_RIGHT]and self.rect.right<self.display.get_width()-IMG_WIDTH//2:
+                self.rect.move_ip(32, 0)
+        
+            if pygame.sprite.spritecollideany(self, landed_sprites):
+                self.landed = True
         
     def draw(self) -> None:
         # pygame.Surface.blit(drawing_surface, destination_surface)
@@ -114,8 +124,7 @@ class Batsu():
 
 def main():
     falling_puyos = FallingPuyos(display, "red", "blue")
-    all_sprites = pygame.sprite.Group()
-    all_sprites.add(falling_puyos.puyos[0], falling_puyos.puyos[1])
+    # all_sprites.add(falling_puyos.puyos[0], falling_puyos.puyos[1])
     
     frame = Frame(display)
     batsu = Batsu(display)
