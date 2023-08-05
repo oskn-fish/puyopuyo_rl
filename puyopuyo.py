@@ -23,14 +23,8 @@ puyo_landed = pygame.event.custom_type()
 game_ended = pygame.event.custom_type()
 
 
-pygame.key.set_repeat(100000,1000)
-
-
 pygame.display.set_caption("puyopuyo")
 
-# keep_update = True
-
-# multiple puyos
 
 # user defined events
 # sprites group
@@ -40,7 +34,6 @@ pygame.display.set_caption("puyopuyo")
 class FallingPuyos(pygame.sprite.Sprite):
     def __init__(self, display: pygame.surface):
         self.display = display
-        # self.puyos = [Puyo(self.display, outlet_position, random.choice(COLORS)), Puyo(self.display, above_outlet, random.choice(COLORS))]
         self.reset_puyos()
         
     def reset_puyos(self):
@@ -82,18 +75,15 @@ class FallingPuyos(pygame.sprite.Sprite):
             # adjusted_dy = 0
         return adjusted_dx, adjusted_dy
     
-    def update(self):
-        # movable 判定は個別puyoでなく，puyosで共有しないといけないので，ここで実装．
-        # ついでに，landedもrefactoringしたい．
-        
+    def update(self, *arrow_key: int):
         dx = 0
         dy = FALL_SPEED
-        pressed_keys = pygame.key.get_pressed()
         
-        if pressed_keys[K_LEFT]:
-            dx = -IMG_WIDTH
-        if pressed_keys[K_RIGHT]:
-            dx = IMG_WIDTH
+        if arrow_key:
+            if arrow_key[0] == K_LEFT:
+                dx = -IMG_WIDTH
+            if arrow_key[0] == K_RIGHT:
+                dx = IMG_WIDTH
             
         dx, dy = self.adjust_move(dx, dy)
         
@@ -103,17 +93,6 @@ class FallingPuyos(pygame.sprite.Sprite):
         
         for puyo in self.puyos:
             puyo.move(dx, dy)
-
-        # for puyo in self.puyos:
-        #     puyo.update()
-        
-        # if landed_sprites.has(self.puyos[0]):
-        #     landed_sprites.add(self.puyos[1])
-        #     pygame.event.post(pygame.event.Event(puyo_landed))
-            
-        # elif landed_sprites.has(self.puyos[1]):
-        #     landed_sprites.add(self.puyos[0])
-        #     pygame.event.post(pygame.event.Event(puyo_landed))
     
     def draw(self):
         for puyo in self.puyos:
@@ -142,33 +121,6 @@ class Puyo(pygame.sprite.Sprite):
         else:
             # self.landed = True
             landed_sprites.add(self)
-        
-    def update(self) -> None:
-        # if not self.landed:
-        self.fall()
-        
-        # pressed_keys = pygame.key.get_pressed()
-        # if pressed_keys[K_LEFT] and self.rect.left>IMG_WIDTH//2:
-        #     movable = True
-        #     candidate = self.rect.move(-32, 0)
-        #     for puyo in landed_sprites:
-        #         if pygame.Rect.colliderect(puyo.rect, candidate):
-        #             movable = False
-        #     if movable:
-        #         self.rect.move_ip(-32, 0)
-        # if pressed_keys[K_RIGHT] and self.rect.right<self.display.get_width()-IMG_WIDTH//2:
-        #     movable = True
-        #     candidate = self.rect.move(32, 0)
-        #     for puyo in landed_sprites:
-        #         if pygame.Rect.colliderect(puyo.rect, candidate):
-        #             movable = False
-        #     if movable:
-        #         self.rect.move_ip(32, 0)
-        
-
-        # if pygame.sprite.spritecollideany(self, landed_sprites):
-            # self.landed = True
-            # landed_sprites.add(self)
             
     def move(self, dx, dy):
         self.rect.move_ip(dx, dy)
@@ -176,13 +128,8 @@ class Puyo(pygame.sprite.Sprite):
     def draw(self) -> None:
         # pygame.Surface.blit(drawing_surface, destination_surface)
         self.display.blit(self.image, self.rect)
-
-# def draw_grid(surface: pygame.surface) -> None:
-#     for i in range(1,6):
-#         pygame.draw.line(surface, BLACK, (i*IMG_WIDTH, surface.get_height()-12*IMG_HEIGHT), (i*IMG_WIDTH, surface.get_height()))
-#     for i in range(1,13):
-#         pygame.draw.line(surface, BLACK, (0, surface.get_height()-i*IMG_HEIGHT), (surface.get_width(), surface.get_height()-i*IMG_HEIGHT))
-
+        
+        
 class Window():
     def __init__(self, display: pygame.surface):
         self.display = display
@@ -220,6 +167,10 @@ class Batsu(pygame.sprite.Sprite):
         
     def draw(self):
         self.surface.blit(self.image, self.rect)
+        
+def board():
+    def __init__(self):
+        self.list_board = [[" "]*6 for i in range(12)]
 
 def main():
     falling_puyos = FallingPuyos(display)
@@ -244,7 +195,9 @@ def main():
                 keep_update = False
             elif event.type == puyo_landed:
                 reset_puyo = True
-                # falling_puyos.reset_puyos()
+            elif event.type == KEYDOWN:
+                if event.key == K_LEFT or event.key == K_RIGHT:
+                    falling_puyos.update(event.key)
                 
         # initiate canvas
         display.fill("white")
