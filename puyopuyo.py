@@ -11,7 +11,13 @@ WHITE = pygame.Color((255, 255, 255))
 FALL_SPEED = 3
 COLORS = ["red", "green", "blue", "purple", "yellow"]
 
-display_size = (IMG_WIDTH*6, IMG_HEIGHT*(12+1+3))
+WINDOW_UPPER_SPACE = IMG_HEIGHT//2
+WINDOW_LOWER_SPACE = IMG_HEIGHT//2
+WINDOW_RIGHT_SPACE = IMG_WIDTH//2
+WINDOW_HEIGHT = 4*IMG_HEIGHT
+LEFT_WINDOW_GAP = 2*IMG_HEIGHT
+
+display_size = (IMG_WIDTH*6, 12*IMG_HEIGHT+WINDOW_UPPER_SPACE+WINDOW_HEIGHT+WINDOW_LOWER_SPACE)
 display = pygame.display.set_mode(display_size)
 clock = pygame.time.Clock()
 
@@ -147,13 +153,13 @@ class Window():
         self.display = display
         self.board = board
         
-        left_surface = pygame.Surface((IMG_WIDTH, 2*IMG_HEIGHT))
-        left_surface.fill(WHITE)
-        left_rect = left_surface.get_rect(topright=(self.display.get_width()-3*IMG_WIDTH//2, 3*IMG_HEIGHT//2))
-        
         right_surface = pygame.Surface((IMG_WIDTH, 2*IMG_HEIGHT))
         right_surface.fill(WHITE)
-        right_rect = right_surface.get_rect(topright=(self.display.get_width()-IMG_WIDTH//2, IMG_HEIGHT//2))
+        right_rect = right_surface.get_rect(topright=(self.display.get_width()-WINDOW_RIGHT_SPACE, WINDOW_UPPER_SPACE))
+        
+        left_surface = pygame.Surface((IMG_WIDTH, 2*IMG_HEIGHT))
+        left_surface.fill(WHITE)
+        left_rect = left_surface.get_rect(topright=(right_rect.left, right_rect.top+LEFT_WINDOW_GAP))
         
         self.surfaces = [right_surface, left_surface]
         self.rects = [right_rect, left_rect]
