@@ -56,7 +56,7 @@ class FallingPuyos(pygame.sprite.Sprite):
             landed_sprites.add(self.puyos[1])
             self.reset_puyos()
         elif landed_sprites.has(self.puyos[1]):
-            landed_sprites.add(self.puyo[0])
+            landed_sprites.add(self.puyos[0])
             # self.landed = True
             self.reset_puyos()
     
@@ -93,9 +93,21 @@ class Puyo(pygame.sprite.Sprite):
         
         pressed_keys = pygame.key.get_pressed()
         if pressed_keys[K_LEFT] and self.rect.left>IMG_WIDTH//2:
-            self.rect.move_ip(-32, 0)
+            movable = True
+            candidate = self.rect.move(-32, 0)
+            for puyo in landed_sprites:
+                if pygame.Rect.colliderect(puyo.rect, candidate):
+                    movable = False
+            if movable:
+                self.rect.move_ip(-32, 0)
         if pressed_keys[K_RIGHT]and self.rect.right<self.display.get_width()-IMG_WIDTH//2:
-            self.rect.move_ip(32, 0)
+            movable = True
+            candidate = self.rect.move(32, 0)
+            for puyo in landed_sprites:
+                if pygame.Rect.colliderect(puyo.rect, candidate):
+                    movable = False
+            if movable:
+                self.rect.move_ip(32, 0)
 
         if pygame.sprite.spritecollideany(self, landed_sprites):
             # self.landed = True
