@@ -30,15 +30,15 @@ class Puyo(pygame.sprite.Sprite):
                "blue":"./img/0_2.png", 
                "yellow":"./img/0_3.png", 
                "purple":"./img/0_4.png"})
-    def __init__(self, color: str, surface: pygame.surface) -> None:
+    def __init__(self, color: str, display: pygame.surface) -> None:
         super().__init__()
-        self.surface = surface
+        self.display = display
         self.image = pygame.image.load(Puyo.to_img[color])
-        self.rect = self.image.get_rect(center = (2*IMG_WIDTH+IMG_WIDTH//2, self.surface.get_height()-11*IMG_HEIGHT-IMG_HEIGHT//2))
+        self.rect = self.image.get_rect(center = (2*IMG_WIDTH+IMG_WIDTH//2, self.display.get_height()-11*IMG_HEIGHT-IMG_HEIGHT//2))
         
     
     def fall(self) -> None:
-        if self.rect.bottom < self.surface.get_height():
+        if self.rect.bottom < self.display.get_height():
             self.rect.move_ip(0, FALL_SPEED)
         
     def update(self) -> None:
@@ -46,12 +46,12 @@ class Puyo(pygame.sprite.Sprite):
         pressed_keys = pygame.key.get_pressed()
         if pressed_keys[K_LEFT] and self.rect.left>IMG_WIDTH//2:
             self.rect.move_ip(-32, 0)
-        if pressed_keys[K_RIGHT]and self.rect.right<self.surface.get_width()-IMG_WIDTH//2:
+        if pressed_keys[K_RIGHT]and self.rect.right<self.display.get_width()-IMG_WIDTH//2:
             self.rect.move_ip(32, 0)
         
     def draw(self) -> None:
         # pygame.Surface.blit(drawing_surface, destination_surface)
-        self.surface.blit(self.image, self.rect)
+        self.display.blit(self.image, self.rect)
 
 # def draw_grid(surface: pygame.surface) -> None:
 #     for i in range(1,6):
@@ -59,17 +59,30 @@ class Puyo(pygame.sprite.Sprite):
 #     for i in range(1,13):
 #         pygame.draw.line(surface, BLACK, (0, surface.get_height()-i*IMG_HEIGHT), (surface.get_width(), surface.get_height()-i*IMG_HEIGHT))
 
-# def draw_puyo_window(surface: pygame.surface):
-#     center_y = surface.get_height()-12*IMG_HEIGHT//2
-#     center_x = surface.get_width()-IMG_WIDTH//2
-#     top1 = center_y+IMG_HEIGHT*3//2
-#     top2 = center_y+IMG_HEIGHT//2
-#     bottom1 = center_y-IMG_HEIGHT*3//2
-#     bottom2 = center_y-IMG_HEIGHT//2
-#     left = center_x-IMG_WIDTH
-#     right = center_x+IMG_WIDTH
-#     pygame.draw.line(surface, BLACK, (center_x, top1), (right, top1))
-#     pygame.draw.line
+class Window():
+    def __init__(self, display: pygame.surface):
+        self.display = display
+        # self.left_rect = pygame.Rect((display.get_width()-IMG_WIDTH//2-IMG_WIDTH, display.get_height()-12*IMG_HEIGHT//2+IMG_HEIGHT//2))
+        self.left_surface = pygame.Surface((IMG_WIDTH, 2*IMG_HEIGHT))
+        self.left_surface.fill((255, 255, 255))
+        self.left_rect = self.left_surface.get_rect(topright=(display.get_width()-3*IMG_WIDTH//2, 3*IMG_HEIGHT//2))
+        self.right_surface = pygame.Surface((IMG_WIDTH, 2*IMG_HEIGHT))
+        self.right_surface.fill((255, 255, 255))
+        self.right_rect = self.right_surface.get_rect(topright=(display.get_width()-IMG_WIDTH//2, IMG_HEIGHT//2))
+        # self.left_rect = self.left_surface.get_rect()
+
+    # def draw_puyo_window(surface: pygame.surface):
+    #     center_y = surface.get_height()-12*IMG_HEIGHT//2
+    #     center_x = surface.get_width()-IMG_WIDTH//2
+    #     top1 = center_y+IMG_HEIGHT*3//2
+    #     top2 = center_y+IMG_HEIGHT//2
+    #     bottom1 = center_y-IMG_HEIGHT*3//2
+    #     bottom2 = center_y-IMG_HEIGHT//2
+    #     left = center_x-IMG_WIDTH
+    #     right = center_x+IMG_WIDTH
+    def draw(self):
+        self.display.blit(self.left_surface, self.left_rect)
+        self.display.blit(self.right_surface, self.right_rect)
     
 # def draw_top(surface: pygame.surface):
 #     pygame.draw.rect()
@@ -95,7 +108,7 @@ def main():
     puyo = Puyo("red", DISPLAY)
     frame = Frame(DISPLAY)
     batsu = Batsu(DISPLAY)
-    
+    window = Window(DISPLAY)
     while True:
         # catch events
         for event in pygame.event.get():
@@ -107,7 +120,9 @@ def main():
         # update display
         DISPLAY.fill("white")
         frame.draw()
+        window.draw()
         batsu.draw()
+        
         # draw_grid(DISPLAY)
         # puyo.fall()
         puyo.update()
