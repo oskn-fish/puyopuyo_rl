@@ -33,16 +33,28 @@ landed_sprites = pygame.sprite.Group()
 puyo_landed = pygame.event.custom_type()
 game_ended = pygame.event.custom_type()
 
+# set window title
 pygame.display.set_caption("puyopuyo")
 
 
 class Board():
+    """
+    store infomation of puyos on the screen with 2-dimentinal list
+    
+    1. puyo queqe of window
+    2. already landed puyos (used for quick drop)
+    
+    """
     def __init__(self):
         self.list_board = [[" "]*6 for i in range(12)]
         self.puyos_queue = [[random.choice(COLORS), random.choice(COLORS)] for i in range(2)]
 
 
 class FallingPuyos(pygame.sprite.Sprite):
+    """
+    1. contains two falling puyos
+    2. defines the movement of containing puyos
+    """
     def __init__(self, display: pygame.surface, board: Board):
         self.display = display
         self.board = board
@@ -115,8 +127,12 @@ class FallingPuyos(pygame.sprite.Sprite):
             puyo.draw()
 
 
-# single puyo
+
 class Puyo(pygame.sprite.Sprite):
+    """
+    simple puyo sprite
+    it's movement is defined by FallingPuyos
+    """
     to_img = ({"red":"./img/0_0.png", 
                "green":"./img/0_1.png", 
                "blue":"./img/0_2.png", 
@@ -147,6 +163,10 @@ class Puyo(pygame.sprite.Sprite):
         
         
 class Window():
+    """
+    class for the puyo stack in window
+    it's contents refer to board
+    """
     def __init__(self, display: pygame.surface, board: Board):
         self.display = display
         self.board = board
@@ -177,6 +197,9 @@ class Window():
 
 
 class Frame():
+    """
+    frame covering window
+    """
     def __init__(self, surface: pygame.surface):
         self.surface = surface
         self.rect = pygame.Rect((0,0), (self.surface.get_width(), self.surface.get_height()-12*IMG_HEIGHT))
@@ -185,6 +208,10 @@ class Frame():
         pygame.draw.rect(self.surface, BLACK, self.rect)
         
 class Batsu(pygame.sprite.Sprite):
+    """
+    the 'x' outlet of puyos
+    if landed puyo touches this, game_ended event will be sent
+    """
     def __init__(self, surface: pygame.surface):
         super().__init__()
         self.surface = surface
