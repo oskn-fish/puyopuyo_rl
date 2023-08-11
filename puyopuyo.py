@@ -16,54 +16,64 @@ pygame.display.set_caption("puyopuyo")
 
 def main():
     board = Board()
-    falling_puyos = FloatingPuyos(display, board)
+    floating_puyos = FloatingPuyos(display, board)
     # all_sprites.add(falling_puyos.puyos[0], falling_puyos.puyos[1])
     
     frame = Frame(display)
     batsu = Batsu(display)
     window = Window(display, board)
     
+    # keep_update = True
     keep_update = True
+    frame_num = 0
     
     while True:
-        # catch events
         
-        reset_floating_puyo = False
         if not keep_update:
+            # print("waiting")
+            pygame.time.wait(100)
             continue
         
         for event in pygame.event.get():
+            # print("eventing ")
             if event.type == QUIT:
                 # Simply using sys.exit() can cause your IDE to hang due to a common bug. 
                 pygame.quit()
                 sys.exit()
+                
+            # this event loop pops all the events happend the last frame
+            # resetting floating puyos depents on both 
+            # 1. batsu not colliding to landed puyos
+            # 2. floating puyos landed
+            # the two conditions can be determined only after the event loop
             elif event.type == game_ended:
                 keep_update = False
             elif event.type == puyo_landed:
-                # reset_floating_puyo = True
-                falling_puyos.reset_puyos()
+                pygame.time.set_timer(reset_puyos, 10, 1)
                 board.add_puyos(event.landed_puyos)
             elif event.type == KEYDOWN:
                 if event.key == K_LEFT or event.key == K_RIGHT:
-                    falling_puyos.update(event.key)
-        
+                    floating_puyos.update(event.key)     
+            elif event.type == reset_puyos:
+                floating_puyos.reset_puyos()
+                pygame.time.set_timer(reset_puyos, 0)
+                
+                
+        # if keep_update:
+        # print(f"updateing frame{frame_num}")
+        frame_num += 1
+        floating_puyos.update()
+        batsu.update()
+        window.update()
         
         # initiate canvas
         display.fill("white")
-        # if keep_update and reset_floating_puyo:
-        #     falling_puyos.reset_floating_puyos()
-
-        # update display
-        # if keep_update:
-        falling_puyos.update()
-        batsu.update()
-        window.update()
         
         # draw
         batsu.draw()
         frame.draw()
         window.draw()
-        falling_puyos.draw()
+        floating_puyos.draw()
         landed_sprites.draw(display)
         
         # render
