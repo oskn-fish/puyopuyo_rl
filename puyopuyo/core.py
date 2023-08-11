@@ -142,7 +142,7 @@ class Board():
     
     """
     def __init__(self):
-        self.list_board = [[" "]*6 for i in range(12)]
+        self.list_board = np.array([[" "]*6 for i in range(12)])
         self.puyos_queue = [[random.choice(COLORS), random.choice(COLORS)] for i in range(2)]
         
     def pop_chain_puyos(self, *fell_puyos: dict) -> list:
@@ -185,18 +185,18 @@ class Board():
     
     def add_puyos(self, landed_puyos: list[Puyo]):
         
-        bottom_lefts = [puyo.rect.bottomleft for puyo in landed_puyos]
-        puyo_indices = [self._coord_to_board_idx(bottom_left) for bottom_left in bottom_lefts]
+        top_lefts = [puyo.rect.topleft for puyo in landed_puyos]
+        puyo_indices = [self._coord_to_board_idx(top_left) for top_left in top_lefts]
         puyo_colors = [puyo.color[0] for puyo in landed_puyos]
         
         for puyo_index, puyo_color  in zip(puyo_indices,puyo_colors):
-            self.list_board[puyo_index[0]][puyo_index[1]] == puyo_color
+            self.list_board[puyo_index[0] ,puyo_index[1]] = puyo_color
         
         print(self.list_board)
         logger.debug(self.list_board)
 
     
-    def _coord_to_board_idx(self, bottom_left):
-        x = bottom_left[0]%IMG_WIDTH
-        y = (display.get_height()-bottom_left[1])%IMG_HEIGHT
-        return x, y
+    def _coord_to_board_idx(self, top_left):
+        i = (top_left[1]-FRAME_HEIGHT)//IMG_WIDTH
+        j = top_left[0]//IMG_HEIGHT
+        return i, j
