@@ -60,10 +60,11 @@ class Batsu(pygame.sprite.Sprite):
         self.image = pygame.image.load("./img/batsu_32.png")
         self.rect = self.image.get_rect(center=(2*IMG_WIDTH+IMG_WIDTH//2, self.surface.get_height()-11*IMG_HEIGHT-IMG_HEIGHT//2))
         
-    def update(self):
+    def post_events(self):
         if pygame.sprite.spritecollideany(self, landed_sprites):
             end_event = pygame.event.Event(game_ended)
             pygame.event.post(end_event)
+    
         
     def draw(self):
         self.surface.blit(self.image, self.rect)

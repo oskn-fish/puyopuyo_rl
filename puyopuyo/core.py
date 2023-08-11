@@ -37,6 +37,7 @@ class Puyo(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center = center)
         self.landed = False
         
+        
     def fall(self) -> None:
         # if not self.landed and self.rect.bottom < self.display.get_height():
         if self.rect.bottom < self.display.get_height():
@@ -61,6 +62,7 @@ class FloatingPuyos(pygame.sprite.Sprite):
     def __init__(self, display: pygame.surface, board: Board):
         self.display = display
         self.board = board
+        self.event_flags = {puyo_landed: False}
         self.reset_puyos()
         
     def reset_puyos(self):
@@ -108,6 +110,10 @@ class FloatingPuyos(pygame.sprite.Sprite):
         return adjusted_dx, adjusted_dy
     
     def update(self, *arrow_key: int):
+        
+        if len(self.puyos) == 0:
+            return
+        
         dx = 0
         dy = FALL_SPEED
         
@@ -122,12 +128,22 @@ class FloatingPuyos(pygame.sprite.Sprite):
         # when landed
         if (dx, dy) == (0, 0):
             landed_sprites.add(self.puyos[0], self.puyos[1])
-            landed_event = pygame.event.Event(puyo_landed, landed_puyos=self.puyos)
+            # landed_event = pygame.event.Event(puyo_landed, landed_puyos=self.puyos)
             # landed_event.__dict__ = {"landed_puyos":self.puyos}
-            pygame.event.post(landed_event)
+            self.event_flags[puyo_landed] = True
+            self.puyos.clear()
+            # pygame.event.post(landed_event)
         
         for puyo in self.puyos:
             puyo.move(dx, dy)
+            
+    def post_events(self):
+        for event, has_occurred in self.event_flags.items():
+            if has_occurred:     
+                if event == puyo_landed:
+                    new_event = pygame.event.Event(event, landed_puyos=self.puyos)
+                    pygame.event.post(new_event)
+                    self.event_flags[puyo_landed] = False
     
     def draw(self):
         for puyo in self.puyos:

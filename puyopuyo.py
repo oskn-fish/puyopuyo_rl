@@ -26,6 +26,7 @@ def main():
     # keep_update = True
     keep_update = True
     frame_num = 0
+    count_frame = None
     
     while True:
         
@@ -49,22 +50,22 @@ def main():
             elif event.type == game_ended:
                 keep_update = False
             elif event.type == puyo_landed:
-                pygame.time.set_timer(reset_puyos, 10, 1)
+                pygame.time.set_timer(reset_puyos, 100, 1) 
                 board.add_puyos(event.landed_puyos)
             elif event.type == KEYDOWN:
                 if event.key == K_LEFT or event.key == K_RIGHT:
                     floating_puyos.update(event.key)     
             elif event.type == reset_puyos:
                 floating_puyos.reset_puyos()
-                pygame.time.set_timer(reset_puyos, 0)
-                
-                
-        # if keep_update:
-        # print(f"updateing frame{frame_num}")
-        frame_num += 1
+        
+        # update
         floating_puyos.update()
         batsu.update()
         window.update()
+        
+        # check for event occurrence
+        floating_puyos.post_events()
+        batsu.post_events()
         
         # initiate canvas
         display.fill("white")
