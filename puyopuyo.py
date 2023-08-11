@@ -42,7 +42,7 @@ def main():
             elif event.type == puyo_landed:
                 # reset_floating_puyo = True
                 falling_puyos.reset_puyos()
-                board.add_puyos(event.__dict__)
+                board.add_puyos(event.landed_puyos)
             elif event.type == KEYDOWN:
                 if event.key == K_LEFT or event.key == K_RIGHT:
                     falling_puyos.update(event.key)
