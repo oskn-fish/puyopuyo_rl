@@ -9,6 +9,16 @@ import numpy as np
 import copy
 import math
 
+# logging
+import json
+import os
+from logging import getLogger, config
+with open(os.path.join("util", "log_config.json")) as f:
+    log_conf = json.load(f)
+config.dictConfig(log_conf)
+logger = getLogger(__name__)
+
+
 class Puyo(pygame.sprite.Sprite):
     """
     simple puyo sprite
@@ -112,9 +122,9 @@ class FloatingPuyos(pygame.sprite.Sprite):
         # when landed
         if (dx, dy) == (0, 0):
             landed_sprites.add(self.puyos[0], self.puyos[1])
-            landed_event = pygame.event.Event(puyo_landed)
-            landed_event.__dict__ = {"landed_puyos":self.puyos}
-            pygame.event.post(pygame.event.Event(puyo_landed))
+            landed_event = pygame.event.Event(puyo_landed, landed_puyos=self.puyos)
+            # landed_event.__dict__ = {"landed_puyos":self.puyos}
+            pygame.event.post(landed_event)
         
         for puyo in self.puyos:
             puyo.move(dx, dy)
@@ -173,14 +183,17 @@ class Board():
         # if is_last_call:
         return coordinate_chain
     
-    def add_puyos(self, event_dict: list[Puyo]):
+    def add_puyos(self, landed_puyos: list[Puyo]):
         
-        bottom_lefts = [puyo.rect.bottomleft for puyo in event_dict["landed_puyos"]]
+        bottom_lefts = [puyo.rect.bottomleft for puyo in landed_puyos]
         puyo_indices = [self._coord_to_board_idx(bottom_left) for bottom_left in bottom_lefts]
-        puyo_colors = [puyo.color[0] for puyo in event_dict]
+        puyo_colors = [puyo.color[0] for puyo in landed_puyos]
         
         for puyo_index, puyo_color  in zip(puyo_indices,puyo_colors):
             self.list_board[puyo_index[0]][puyo_index[1]] == puyo_color
+        
+        print(self.list_board)
+        logger.debug(self.list_board)
 
     
     def _coord_to_board_idx(self, bottom_left):
