@@ -1,9 +1,9 @@
 import pygame
 from puyopuyo.board import Board
 from puyopuyo.constants import *
-from puyopuyo.puyo import *
+from puyopuyo.core import *
 from puyopuyo.event import *
-from puyopuyo.basic import *
+# from puyopuyo.f import *
 
 class Window():
     """

@@ -2,7 +2,6 @@ import pygame
 import random
 from puyopuyo.constants import *
 from puyopuyo.event import *
-from puyopuyo.basic import *
 from puyopuyo.board import Board
 from pygame.locals import *
 import numpy as np
@@ -89,18 +88,19 @@ class FloatingPuyos(pygame.sprite.Sprite):
     def y_movable(self, dy):
         candidates = [self.puyos[i].rect.move(0, dy) for i in range(2)]
         for candidate in candidates:
-            if candidate.bottom>self.display.get_height():
+            if candidate.bottom>=self.display.get_height():
                 return False
             for puyo in landed_sprites:
                 if pygame.Rect.colliderect(puyo.rect, candidate):
                     return False
         return True
     
-    def adjust_move(self, dx, dy) -> tuple:
+    def _adjust_move(self, dx, dy) -> tuple:
         adjusted_dx, adjusted_dy = dx, dy
         if not self.x_movable(dx):
             adjusted_dx = 0
         if not self.y_movable(dy):
+            adjusted_dy = 0
             for i in range(FALL_SPEED):
                 if self.y_movable(i):
                     adjusted_dy = i
@@ -117,7 +117,7 @@ class FloatingPuyos(pygame.sprite.Sprite):
             if arrow_key[0] == K_RIGHT:
                 dx = IMG_WIDTH
             
-        dx, dy = self.adjust_move(dx, dy)
+        dx, dy = self._adjust_move(dx, dy)
         
         # when landed
         if (dx, dy) == (0, 0):
@@ -192,8 +192,8 @@ class Board():
         for puyo_index, puyo_color  in zip(puyo_indices,puyo_colors):
             self.list_board[puyo_index[0] ,puyo_index[1]] = puyo_color
         
-        print(self.list_board)
-        logger.debug(self.list_board)
+        # print(self.list_board)
+        # logger.debug(self.list_board)
 
     
     def _coord_to_board_idx(self, top_left):

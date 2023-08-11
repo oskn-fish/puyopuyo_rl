@@ -3,7 +3,6 @@ from puyopuyo.board import Board
 from puyopuyo.constants import *
 from puyopuyo.core import *
 from puyopuyo.event import *
-from puyopuyo.basic import *
 
 class Window():
     """
