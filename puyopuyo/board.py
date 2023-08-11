@@ -1,5 +1,5 @@
 import random
-from constants.constants import *
+from puyopuyo.constants import *
 import math
 import copy
 import numpy as np

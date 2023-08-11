@@ -1,9 +1,9 @@
 import pygame
 import random
-from constants.constants import *
-from events.puyo import *
-from group.basic import *
-from logic.board import *
+from puyopuyo.constants import *
+from puyopuyo.event import *
+from puyopuyo.basic import *
+from puyopuyo.board import *
 from pygame.locals import *
 
 class Puyo(pygame.sprite.Sprite):
