@@ -45,7 +45,7 @@ class Frame():
     """
     def __init__(self, surface: pygame.surface):
         self.surface = surface
-        self.rect = pygame.Rect((0,0), (self.surface.get_width(), self.surface.get_height()-12*IMG_HEIGHT))
+        self.rect = pygame.Rect((0,0), (self.surface.get_width(),FRAME_HEIGHT))
 
     def draw(self) -> None:
         pygame.draw.rect(self.surface, BLACK, self.rect)
