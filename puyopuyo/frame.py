@@ -62,7 +62,7 @@ class Batsu(pygame.sprite.Sprite):
         
     def post_events(self):
         if pygame.sprite.spritecollideany(self, landed_sprites):
-            end_event = pygame.event.Event(game_ended)
+            end_event = pygame.event.Event(GAME_ENDED)
             pygame.event.post(end_event)
     
         
