@@ -49,8 +49,13 @@ def main():
                 keep_update = False
                 
             elif event.type == PUYO_LANDED:
+                # reset puyo event reservation
                 pygame.time.set_timer(RESET_PUYOS, 100, 1) 
+                # board update
                 board.add_puyos(event.landed_puyos)
+                # check if any chain pops 
+                does_pop = board.pop_chain_puyos(event.landed_puyos)
+                
                 
             elif event.type == KEYDOWN:
                 if event.key == K_LEFT or event.key == K_RIGHT:
