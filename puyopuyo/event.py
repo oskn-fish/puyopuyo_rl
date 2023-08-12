@@ -1,6 +1,6 @@
 import pygame
 
 # user defined evnets
-puyo_landed = pygame.event.custom_type()
-game_ended = pygame.event.custom_type()
-reset_puyos = pygame.event.custom_type()
+PUYO_LANDED = pygame.event.custom_type()
+GAME_ENDED = pygame.event.custom_type()
+RESET_PUYOS = pygame.event.custom_type()
